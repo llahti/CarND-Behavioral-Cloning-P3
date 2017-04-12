@@ -27,7 +27,7 @@ def augment_pipeline(generator):
     # All steps staring from here are for data augmentation
     gen = GenRandBrightness(gen, br_range=(0.2, 1.))
     gen = GenGaussVerticalShift(gen, mu=0, sigma=8, multiplication=2)
-    gen = GenRandHorizontalShift(gen, (-20, 20), multiplication=8, target_distance=20)
+    gen = GenRandHorizontalShift(gen, (-20, 20), multiplication=2, target_distance=50)
     gen = GenFlipLR(gen)
     return gen
 

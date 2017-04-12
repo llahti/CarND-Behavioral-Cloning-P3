@@ -22,7 +22,7 @@ The goals / steps of this project are the following:
 [image8]: ./illustrations/vertical_shift_20170410.png "Vertical Shift Augmentation"
 [image9]: ./illustrations/horizontal_shift_20170410.png "Horizontal Shift Augmentation"
 [image10]: ./illustrations/augment_pipeline_20170411.png "Image Run Through Augmentation Pipeline"
-
+[image11]: ./illustrations/training_plot_model_06_e50_lr0_001.png "Training loss and val_loss plotted"
 
 [//]: # (Video References)
 [video1]: ./video.mp4 "Final result: Car driving autonomously"
@@ -75,23 +75,31 @@ layer with 2x2 sub-sampling and 3x3 kernel to further reduce image size down to
 (37, 37, 4) 
 
 Then there are nine convolution layers with kernel size 3x3 which are 
-reducing image size 19x19 to and increasing depth to 24.
+reducing image size 19x19 to and increasing depth to 24. These layers are 
+converting features in images to more high level features. 
  
 Last 2 convolution layers are reducing image dimensions from 19x19 to 4x15 
 and keeping depth at 24. Image size on these two layers is relative wide 
 compared to earlier layers. That is to keep needed parameters small and still
 extract useful features about the road curvature.
 
-Finally there are 5 fully connected layers and one output layer.
+Finally there are 5 fully connected layers which are processing the output from 
+convolutional layers. Last layer is linear output layer which outputs steering 
+angle as a floating point number in range -1...1.
 
-All layers are using ELU activation except last 3 layers. Output layer uses 
+All layers are using ELU activation except last 2 layers. Output layer uses 
 linear activation and 1 layer before output is sigmoid layer which is creating
 "clean" activation for linear output layer.
+
+Reason why I'm using ELU activation is that it reduces needed for batch 
+normalization and therefore i can make simpler model.
+
+model is defined `model.py` lines 14-84
 
 #### 2. Attempts to reduce overfitting in the model
 
 The model contains dropout layers in order to reduce overfitting. In 
-convolutional layers i'm using 0.1 dropout rate and  FC1-FC4 are using 0.5 
+convolution layers i'm using 0.1 dropout rate and  FC1-FC4 are using 0.5 
 dropout rate. Last 3 layers are not using dropout.
 
 I was using small data sets to evaluate models in order to understand fast is 
@@ -107,6 +115,12 @@ several times of trial and error I came into conclusion that those are working
 well. I used **mean-squared-error** as a loss function. For further development 
 there should be more systematic way of tuning hyperparameters. Good candidates 
 for parameter tuning would be K-fold cross-validation and grid search.
+
+In beginning i tried also batch size of 128...256 and noticed that with those 
+sizes training is not performing well. After dropping batch size below 64 i begin
+to get much better results.
+
+Below is how I defined optimizer and loss function.
 
 ````python
 adam = optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.05)
@@ -135,7 +149,7 @@ available models such as VGG16 and if it doesn't work then after that try to
 create own model.
 
 First i was using VGG16 model with custom output layer which consist of few 
-fully connected layers. Anyhow i didn't get this to work for some reason.
+fully connected layers. Anyhow i didn't get this to work for some reason. 
 
 Then the next step was to try out [NVidia's model][2]. It turned out that this 
 model was working better, but still not well enough. 
@@ -372,10 +386,21 @@ Final test was to test whether car can drive autonomously on track. Most of the
  on 20mph and car begin to oscillate between lane edges and finally drove off the road.
  Anyhow.. slower speeds are still ok.
  
- Below is result video which was driven with model trained for 15 epochs. 
+Final model was training for 50 epochs and from the training and validation loss 
+plot we can see that model is converging quite nicely. 
+Final metrics are `loss: 0.0217 - val_loss: 0.0149   `
+
+![Model 6 training and validation loss][image11]
+
+ 
+ Then next step is to find out how model can drive car around the track. Below 
+ is result video which was driven with model trained for 50 epochs. In video car 
+ is driving close to left edge of the road, it could be caused by the training 
+ data where i'm also driving bit closer to left edge.
  
 ![Result Video: Car Driving Autonomously][video1]
 
 At this moment car can't drive on track #2. Either I need to collect training 
 data from that particular track or try to augment data collected from track #1 
-in different ways.
+in different ways. This will be left for further study.
+
