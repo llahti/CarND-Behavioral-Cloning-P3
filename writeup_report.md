@@ -43,7 +43,7 @@ individually and describe how I addressed each point in my implementation.**
 
 My project includes the following files:
 * Code
-  - model.py containing the script to create and train the model
+  - model.py containing the script to create model
   - drive.py for driving the car in autonomous mode
   - model.h5 containing a trained convolution neural network 
   - train.py used for training the model
